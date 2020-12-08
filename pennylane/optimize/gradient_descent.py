@@ -47,7 +47,7 @@ class GradientDescentOptimizer:
         """
         self._stepsize = stepsize
 
-    def step_and_cost(self, objective_fn, x, grad_fn=None):
+    def step_and_cost(self, objective_fn, x, *args, grad_fn=None, **kwargs):
         """Update x with one step of the optimizer and return the corresponding objective
         function value prior to the step.
 
@@ -63,15 +63,15 @@ class GradientDescentOptimizer:
                 prior to the step
         """
 
-        g, forward = self.compute_grad(objective_fn, x, grad_fn=grad_fn)
+        g, forward = self.compute_grad(objective_fn, x, *args, grad_fn=grad_fn, **kwargs)
         x_out = self.apply_grad(g, x)
 
         if forward is None:
-            forward = objective_fn(x)
+            forward = objective_fn(x, **args, **kwargs)
 
         return x_out, forward
 
-    def step(self, objective_fn, x, grad_fn=None):
+    def step(self, objective_fn, x, *args, grad_fn=None, **kwargs):
         """Update x with one step of the optimizer.
 
         Args:
@@ -84,13 +84,13 @@ class GradientDescentOptimizer:
         Returns:
             array: the new variable values :math:`x^{(t+1)}`
         """
-        g, _ = self.compute_grad(objective_fn, x, grad_fn=grad_fn)
+        g, _ = self.compute_grad(objective_fn, x, *args, grad_fn=grad_fn, **kwargs)
         x_out = self.apply_grad(g, x)
 
         return x_out
 
     @staticmethod
-    def compute_grad(objective_fn, x, grad_fn=None):
+    def compute_grad(objective_fn, x, *args, grad_fn=None, **kwargs):
         r"""Compute gradient of the objective_fn at the point x and return it along with the
             objective function forward pass (if available).
 
@@ -105,8 +105,8 @@ class GradientDescentOptimizer:
                 objective function output. If ``grad_fn`` is provided, the objective function
                 will not be evaluted and instead ``None`` will be returned.
         """
-        g = get_gradient(objective_fn) if grad_fn is None else grad_fn
-        grad = g(x)
+        g = get_gradient(objective_fn, argnum=0) if grad_fn is None else grad_fn
+        grad = g(x, *args, **kwargs)
         forward = getattr(g, "forward", None)
 
         return grad, forward
